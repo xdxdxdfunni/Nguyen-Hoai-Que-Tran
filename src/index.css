@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Be+Vietnam+Pro:wght@300;400;500;600&family=Dancing+Script:wght@500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-hand: 'Dancing Script', cursive;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-[#05070d] font-sans text-slate-200 antialiased;
+  background-image: radial-gradient(ellipse 120% 70% at top, #14213d 0%, #070b16 55%, #05070d 100%);
+  background-attachment: fixed;
+}
+
+.night-sky {
+  background: radial-gradient(ellipse at top, #14213d 0%, #070b16 55%, #05070d 100%);
+}
+
+.glow-text {
+  text-shadow:
+    0 0 18px rgb(125 211 252 / 0.45),
+    0 0 48px rgb(59 130 246 / 0.3);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.shooting-star {
+  position: absolute;
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, #fff, transparent);
+  opacity: 0;
+  transform: rotate(-35deg);
+  animation: shoot 12s linear infinite;
+}
+
+@keyframes shoot {
+  0% { opacity: 0; translate: 0 0; }
+  1% { opacity: 1; }
+  6% { opacity: 0; translate: -420px 300px; }
+  100% { opacity: 0; translate: -420px 300px; }
+}
+
+/* Gentle sway from the base of a flower, like a breeze. Set --amp for how far it leans. */
+.sway {
+  transform-origin: 50% 85%;
+  animation: sway 3s ease-in-out infinite alternate;
+}
+
+@keyframes sway {
+  from { transform: rotate(calc(-1 * var(--amp, 5deg))); }
+  to { transform: rotate(var(--amp, 5deg)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shooting-star { display: none; }
+  /* Keep a much calmer sway rather than none, so the flowers still feel alive. */
+  .sway { --amp: 1.5deg !important; animation-duration: 5s !important; }
+}
