@@ -12,19 +12,19 @@ html {
 }
 
 body {
-  @apply bg-[#05070d] font-sans text-slate-200 antialiased;
-  background-image: radial-gradient(ellipse 120% 70% at top, #14213d 0%, #070b16 55%, #05070d 100%);
+  @apply bg-[#0a0304] font-sans text-stone-200 antialiased;
+  background-image: radial-gradient(ellipse 120% 70% at top, #3a0b0e 0%, #170507 55%, #0a0304 100%);
   background-attachment: fixed;
 }
 
 .night-sky {
-  background: radial-gradient(ellipse at top, #14213d 0%, #070b16 55%, #05070d 100%);
+  background: radial-gradient(ellipse at top, #3a0b0e 0%, #170507 55%, #0a0304 100%);
 }
 
 .glow-text {
   text-shadow:
-    0 0 18px rgb(125 211 252 / 0.45),
-    0 0 48px rgb(59 130 246 / 0.3);
+    0 0 18px rgb(254 202 202 / 0.45),
+    0 0 48px rgb(220 38 38 / 0.35);
 }
 
 @keyframes twinkle {
@@ -64,4 +64,99 @@ body {
   .shooting-star { display: none; }
   /* Keep a much calmer sway rather than none, so the flowers still feel alive. */
   .sway { --amp: 1.5deg !important; animation-duration: 5s !important; }
+}
+
+/* ---------- Scrapbook ambient motion (on an inner element, so entrance transforms stay separate) ---------- */
+.amb-float { animation: amb-float 3.6s ease-in-out infinite; }
+@keyframes amb-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-7%) scale(1.06); }
+}
+
+.amb-twinkle { animation: amb-twinkle 2.4s ease-in-out infinite; }
+@keyframes amb-twinkle {
+  0%, 100% { transform: scale(0.82) rotate(-6deg); opacity: 0.75; filter: brightness(1); }
+  50% { transform: scale(1.12) rotate(6deg); opacity: 1; filter: brightness(1.25); }
+}
+
+/* Still most of the time, then a quick little wiggle */
+.amb-wiggle { animation: amb-wiggle 4.5s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes amb-wiggle {
+  0%, 78%, 100% { transform: rotate(0); }
+  82% { transform: rotate(-8deg); }
+  86% { transform: rotate(7deg); }
+  90% { transform: rotate(-4deg); }
+  94% { transform: rotate(2deg); }
+}
+
+.amb-rock { animation: amb-rock 5s ease-in-out infinite alternate; }
+@keyframes amb-rock {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+
+.amb-spin { animation: amb-spin 40s linear infinite; }
+@keyframes amb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Butterfly wings: squash horizontally around the body */
+.amb-flap { animation: amb-flap 0.5s ease-in-out infinite alternate; }
+@keyframes amb-flap {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0.45); }
+}
+
+/* A band of light sweeping across a photo */
+.amb-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: amb-shine 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes amb-shine {
+  0%, 60% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(120%); }
+}
+
+/* "Tap me" ring */
+.hint-pulse { animation: hint-pulse 2s ease-out infinite; }
+@keyframes hint-pulse {
+  0% { transform: scale(0.85); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amb-float, .amb-twinkle, .amb-wiggle, .amb-rock, .amb-spin, .amb-flap { animation-duration: 8s; }
+  .amb-shine::after { animation: none; }
+}
+
+@keyframes cd-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hearts swaying side to side; each heart sets its own lean (--amp), drift (--dx), speed and timing */
+.amb-heart {
+  transform-origin: 50% 100%;
+  animation: amb-heart 3s ease-in-out infinite;
+}
+@keyframes amb-heart {
+  0%, 100% { transform: translateX(calc(-1 * var(--dx, 6%))) rotate(calc(-1 * var(--amp, 10deg))); }
+  50% { transform: translateX(var(--dx, 6%)) translateY(-5%) rotate(var(--amp, 10deg)) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amb-heart { animation-duration: 8s; }
+}
+
+/* Phone held sideways: ask to turn it upright (the scrapbook is designed for portrait) */
+.rotate-hint { display: none; }
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  .rotate-hint { display: flex; }
+}
+@keyframes rotate-phone {
+  0%, 20% { transform: rotate(-90deg); }
+  60%, 100% { transform: rotate(0deg); }
 }

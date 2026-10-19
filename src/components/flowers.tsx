@@ -1,17 +1,18 @@
-// Flat 2D illustrated roses in black and blue.
+// Flat 2D illustrated roses in red, black and white.
 // <FlowerShape> is an SVG group centred on 0,0 (radius ~48) for composing inside other SVGs;
 // <Flower> wraps one in its own <svg>.
 
-export type RoseColor = 'blue' | 'black'
+export type RoseColor = 'red' | 'black' | 'white'
 export type FlowerType = `${RoseColor}${'Rose' | 'Bud' | 'Leaves'}`
 
 const PALETTES = {
-  blue: { p1: '#4A7BE0', p2: '#3566CF', p3: '#2652B5', p4: '#1B3F91', core: '#132E6E', rim: '#B4CCF7', edge: '#1D418F' },
-  black: { p1: '#3A3E4A', p2: '#2C2F39', p3: '#202229', p4: '#17181E', core: '#0B0C10', rim: '#8D97AE', edge: '#0F1014' },
+  red: { p1: '#D9333F', p2: '#BE2433', p3: '#9C1826', p4: '#7A0F1B', core: '#4A0710', rim: '#F7B7BC', edge: '#6E0C16' },
+  black: { p1: '#3E3A3C', p2: '#2F2B2D', p3: '#222021', p4: '#181617', core: '#0B0A0A', rim: '#A39A9C', edge: '#100E0F' },
+  white: { p1: '#FBF8F3', p2: '#F1EBE2', p3: '#E3DACD', p4: '#D2C6B6', core: '#B8AA96', rim: '#FFFFFF', edge: '#BFB3A3' },
 }
 type Palette = (typeof PALETTES)[RoseColor]
 
-const LEAF = { fill: '#2C4A57', vein: '#4C7282', edge: '#1F363F' }
+const LEAF = { fill: '#2F4A36', vein: '#557A5C', edge: '#1F3324' }
 
 const P = (r: number, deg: number) => {
   const a = (deg * Math.PI) / 180
@@ -92,7 +93,7 @@ export function Leaf({ x, y, rot, s = 1 }: { x: number; y: number; rot: number; 
 }
 
 export function FlowerShape({ type }: { type: FlowerType }) {
-  const color: RoseColor = type.startsWith('blue') ? 'blue' : 'black'
+  const color: RoseColor = type.startsWith('red') ? 'red' : type.startsWith('white') ? 'white' : 'black'
   const c = PALETTES[color]
   if (type.endsWith('Bud')) return <Bud c={c} />
   if (type.endsWith('Leaves'))
@@ -111,42 +112,6 @@ export function Flower({ type, className }: { type: FlowerType; className?: stri
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="-56 -56 112 112" className={className} aria-hidden>
       <FlowerShape type={type} />
-    </svg>
-  )
-}
-
-const at = (x: number, y: number, s: number, type: FlowerType, rot = 0) => (
-  <g key={`${x}-${y}`} transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`}>
-    <FlowerShape type={type} />
-  </g>
-)
-
-/* A small bouquet of black and blue roses wrapped in white paper with a navy ribbon */
-export function Bouquet({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 120 170" className={className} overflow="visible" aria-hidden>
-      <polygon points="14,58 106,58 70,160 50,160" fill="#CBD5E1" />
-      <Leaf x={36} y={60} rot={-150} s={0.55} />
-      <Leaf x={84} y={58} rot={-30} s={0.55} />
-      <Leaf x={28} y={78} rot={-170} s={0.5} />
-      <Leaf x={92} y={76} rot={-10} s={0.5} />
-      {at(46, 18, 0.2, 'blackBud', -18)}
-      {at(78, 16, 0.2, 'blueBud', 14)}
-      {at(24, 40, 0.22, 'blueRose', 20)}
-      {at(98, 38, 0.22, 'blackRose', 50)}
-      {at(38, 52, 0.3, 'blackRose', 10)}
-      {at(84, 50, 0.3, 'blueRose', 70)}
-      {at(60, 36, 0.36, 'blueRose', 30)}
-      {at(60, 64, 0.24, 'blackRose', 5)}
-      <path d="M12 62L60 80L108 62L70 160H50Z" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth=".8" strokeLinejoin="round" />
-      <path d="M60 80V160" stroke="#E2E8F0" strokeWidth=".8" />
-      <g fill="#1E3A8A" stroke="#0F1A33" strokeWidth=".6">
-        <path d="M60 120C48 110 38 114 42 122C45 128 54 126 60 120Z" />
-        <path d="M60 120C72 110 82 114 78 122C75 128 66 126 60 120Z" />
-        <path d="M58 121L50 144L55 141L57 147L61 122Z" />
-        <path d="M62 121L70 144L65 141L63 147L59 122Z" />
-        <ellipse cx="60" cy="121" rx="4" ry="3.4" />
-      </g>
     </svg>
   )
 }

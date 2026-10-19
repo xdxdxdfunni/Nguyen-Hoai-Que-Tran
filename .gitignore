@@ -150,3 +150,6 @@ vite.config.ts.timestamp-*
 
 # Vercel
 .vercel
+
+# Full-resolution originals (the site uses resized copies in public/)
+design/photos-original/
