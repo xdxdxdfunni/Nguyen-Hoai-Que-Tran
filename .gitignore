@@ -153,3 +153,4 @@ vite.config.ts.timestamp-*
 
 # Full-resolution originals (the site uses resized copies in public/)
 design/photos-original/
+design/letter-voice-original.m4a

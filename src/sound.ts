@@ -236,6 +236,7 @@ export const scratch = {
 let song: HTMLAudioElement | null = null
 let boxTimer: number | undefined
 let playing = false
+let duckTimer: number | undefined
 const musicListeners = new Set<() => void>()
 const notifyMusic = () => musicListeners.forEach((fn) => fn())
 
@@ -307,6 +308,20 @@ export const music = {
   toggle() {
     if (playing) music.pause()
     else music.play()
+  },
+  // Turn the music down while his voice reads the letter, and back up afterwards
+  duck(on: boolean) {
+    const target = on ? 0.12 : 0.75
+    if (song) {
+      const el = song
+      window.clearInterval(duckTimer)
+      duckTimer = window.setInterval(() => {
+        const next = el.volume + (target - el.volume) * 0.25
+        el.volume = Math.abs(next - target) < 0.01 ? target : next
+        if (el.volume === target) window.clearInterval(duckTimer)
+      }, 50)
+    }
+    if (ctx) musicBus.gain.setTargetAtTime(on ? 0.04 : 0.22, ctx.currentTime, 0.3)
   },
   isPlaying: () => playing,
   hasSong: () => Boolean(content.song.src),
