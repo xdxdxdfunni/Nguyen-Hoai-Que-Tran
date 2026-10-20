@@ -1,7 +1,7 @@
 import { motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { content } from '../content'
-import { isMuted, music, onMutedChange } from '../sound'
+import { music, voice } from '../sound'
 
 // Lined writing paper with a red margin, drawn in CSS.
 const PAPER = {
@@ -50,58 +50,52 @@ export function LetterModal({ onClose }: { onClose: () => void }) {
   const [perWord, setPerWord] = useState(VOICE ? 0 : DEFAULT_PER_WORD)
   const [run, setRun] = useState(0) // bumped to replay the writing
   const [speaking, setSpeaking] = useState(false)
-  const voice = useRef<HTMLAudioElement | null>(null)
   const sheet = useRef<HTMLDivElement>(null)
 
+  // The recording was already started by the tap that opened the letter (see voice.start)
   useEffect(() => {
-    if (!VOICE) return
-    const a = new Audio(VOICE)
-    a.preload = 'auto'
-    a.muted = isMuted()
-    voice.current = a
+    const a = voice.element()
+    if (!a) return
     const onMeta = () => setPerWord(paceFor(a.duration))
-    const onPlay = () => {
-      setSpeaking(true)
-      music.duck(true)
-    }
+    const onPlay = () => setSpeaking(true)
     const onStop = () => {
       setSpeaking(false)
-      music.duck(false)
+      music.hold(false)
     }
     a.addEventListener('loadedmetadata', onMeta)
     a.addEventListener('play', onPlay)
     a.addEventListener('pause', onStop)
     a.addEventListener('ended', onStop)
+    // It may have started (and loaded) before this card appeared
+    const sync = window.setTimeout(() => {
+      if (a.readyState >= 1 && Number.isFinite(a.duration)) onMeta()
+      if (!a.paused) onPlay()
+    }, 0)
     // If the length can't be read quickly, write at the normal pace rather than wait
     const fallback = window.setTimeout(() => setPerWord((p) => p || DEFAULT_PER_WORD), 2500)
-    void a.play().catch(onStop)
-    const offMuted = onMutedChange((m) => {
-      a.muted = m
-    })
     return () => {
+      window.clearTimeout(sync)
       window.clearTimeout(fallback)
       a.removeEventListener('loadedmetadata', onMeta)
       a.removeEventListener('play', onPlay)
       a.removeEventListener('pause', onStop)
       a.removeEventListener('ended', onStop)
-      a.pause()
-      offMuted()
-      music.duck(false)
+      voice.stop()
     }
   }, [])
 
   const toggleVoice = () => {
-    const a = voice.current
+    const a = voice.element()
     if (!a) return
     if (speaking) {
       a.pause()
-    } else {
-      if (a.ended || a.currentTime === 0) {
-        a.currentTime = 0
-        setRun((r) => r + 1) // write it again from the start, in time with the voice
-      }
-      void a.play().catch(() => {})
+      return
     }
+    if (a.ended || a.currentTime === 0) {
+      a.currentTime = 0
+      setRun((r) => r + 1) // write it again from the start, in time with the voice
+    }
+    voice.start()
   }
 
   const { starts, signAt } = timings(perWord || DEFAULT_PER_WORD)

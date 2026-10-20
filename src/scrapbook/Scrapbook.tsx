@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { content } from '../content'
 import { haptics } from '../haptics'
-import { sfx } from '../sound'
+import { sfx, voice } from '../sound'
 import { DESIGN, PARTS, WINDOWS, type PartName } from './layout'
 import { CdPlayer } from './CdPlayer'
 import { LetterModal } from './LetterModal'
@@ -205,6 +205,7 @@ export function Scrapbook() {
   const openLetter = () => {
     sfx.paper()
     haptics.flip()
+    voice.start() // must happen inside the tap for iPhones
     setLetterOpen(true)
   }
 

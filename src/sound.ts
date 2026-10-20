@@ -1,4 +1,4 @@
-// All sounds are synthesised with the Web Audio API — no audio files to download.
+// Sound effects and the music box are synthesised with the Web Audio API; the song and his voice are audio files.
 // Browsers only allow sound after a tap, so call unlockAudio() from the first tap handler.
 
 import { content } from './content'
@@ -9,16 +9,9 @@ let sfxBus: GainNode
 let musicBus: GainNode
 let reverb: ConvolverNode
 let noise: AudioBuffer
-let muted = readMuted()
+// Mute lasts for this visit only, so an accidental tap never silences the gift for good
+let muted = false
 const listeners = new Set<(muted: boolean) => void>()
-
-function readMuted() {
-  try {
-    return localStorage.getItem('gift-muted') === '1'
-  } catch {
-    return false
-  }
-}
 
 function setup() {
   if (ctx) return ctx
@@ -67,13 +60,9 @@ export function isMuted() {
 
 export function setMuted(next: boolean) {
   muted = next
-  try {
-    localStorage.setItem('gift-muted', next ? '1' : '0')
-  } catch {
-    // private mode: keep it for this visit only
-  }
   if (ctx) master.gain.setTargetAtTime(next ? 0 : 0.85, ctx.currentTime, 0.05)
   if (song) song.muted = next
+  if (voiceEl) voiceEl.muted = next
   listeners.forEach((fn) => fn(next))
 }
 
@@ -236,7 +225,6 @@ export const scratch = {
 let song: HTMLAudioElement | null = null
 let boxTimer: number | undefined
 let playing = false
-let duckTimer: number | undefined
 const musicListeners = new Set<() => void>()
 const notifyMusic = () => musicListeners.forEach((fn) => fn())
 
@@ -309,19 +297,16 @@ export const music = {
     if (playing) music.pause()
     else music.play()
   },
-  // Turn the music down while his voice reads the letter, and back up afterwards
-  duck(on: boolean) {
-    const target = on ? 0.12 : 0.75
-    if (song) {
-      const el = song
-      window.clearInterval(duckTimer)
-      duckTimer = window.setInterval(() => {
-        const next = el.volume + (target - el.volume) * 0.25
-        el.volume = Math.abs(next - target) < 0.01 ? target : next
-        if (el.volume === target) window.clearInterval(duckTimer)
-      }, 50)
+  // Pause the song while his voice reads the letter, then carry on. (Pausing rather than turning it
+  // down, because iPhones don't let a web page change an audio element's volume.)
+  hold(on: boolean) {
+    if (on) {
+      song?.pause()
+      stopBox()
+    } else if (playing) {
+      if (song) void song.play().catch(() => {})
+      else startBox()
     }
-    if (ctx) musicBus.gain.setTargetAtTime(on ? 0.04 : 0.22, ctx.currentTime, 0.3)
   },
   isPlaying: () => playing,
   hasSong: () => Boolean(content.song.src),
@@ -335,5 +320,60 @@ export const music = {
     return () => {
       musicListeners.delete(fn)
     }
+  },
+}
+
+// ---------- his voice reading the letter ----------
+// iPhones only let audio start directly inside a tap. So the recording is "primed" during the
+// envelope tap (played silently for an instant) and started inside the tap that opens the letter.
+
+let voiceEl: HTMLAudioElement | null = null
+let voicePrimed = false
+let voiceStarted = false
+
+function voiceElement() {
+  if (!voiceEl && content.letterVoice) {
+    voiceEl = new Audio(content.letterVoice)
+    voiceEl.preload = 'auto'
+    voiceEl.setAttribute('playsinline', '')
+  }
+  return voiceEl
+}
+
+export const voice = {
+  element: voiceElement,
+  prime() {
+    const el = voiceElement()
+    if (!el || voicePrimed) return
+    voicePrimed = true
+    el.muted = true
+    void el
+      .play()
+      .then(() => {
+        if (voiceStarted) return
+        el.pause()
+        el.currentTime = 0
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!voiceStarted) el.muted = muted
+      })
+  },
+  // Call from inside a tap
+  start() {
+    const el = voiceElement()
+    if (!el) return
+    voiceStarted = true
+    el.muted = muted
+    if (el.ended) el.currentTime = 0
+    music.hold(true)
+    void el.play().catch(() => music.hold(false))
+  },
+  stop() {
+    if (!voiceEl) return
+    voiceEl.pause()
+    voiceEl.currentTime = 0
+    voiceStarted = false
+    music.hold(false)
   },
 }

@@ -2,7 +2,7 @@ import { motion } from 'motion/react'
 import { useRef, useState } from 'react'
 import { content } from '../content'
 import { haptics } from '../haptics'
-import { music, sfx, unlockAudio } from '../sound'
+import { music, sfx, unlockAudio, voice } from '../sound'
 import { Envelope } from './Envelope'
 import type { Point } from './LockScreen'
 import { Starfield } from './Starfield'
@@ -22,6 +22,7 @@ export function EnvelopeScreen({ onOpen }: { onOpen: (envelopeCenter: Point) => 
     sfx.envelope()
     haptics.open()
     music.play()
+    voice.prime()
     // Let the flap flip and the letter peek out, then burst from the envelope's middle.
     setTimeout(() => {
       const box = envelopeRef.current?.getBoundingClientRect()
